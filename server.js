@@ -1,4 +1,4 @@
-// server.js — SendGrid only
+// server.js — afgestemd op jouw root-structuur
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -8,13 +8,12 @@ require('dotenv').config();
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// ---- SendGrid init ----
+// SendGrid init
 if (!process.env.SENDGRID_API_KEY) {
   console.error('Missing SENDGRID_API_KEY'); process.exit(1);
 }
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// EU regio (optioneel): SENDGRID_EU=1
 if (process.env.SENDGRID_EU === '1') {
   const { Client } = require('@sendgrid/client');
   const client = new Client();
@@ -23,7 +22,7 @@ if (process.env.SENDGRID_EU === '1') {
   sgMail.client = client;
 }
 
-// ---- Middleware ----
+// Middleware
 app.use(cors({
   origin: [
     process.env.ALLOW_ORIGIN || 'http://localhost:5173',
@@ -35,11 +34,18 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '100kb' }));
 
-// Static client (optioneel)
-app.use(express.static(path.join(__dirname, 'public')));
+// Static: serve alles uit de root en submappen (assets, css)
+app.use(express.static(path.join(__dirname)));
 
-// Health
-app.get('/health', (_, res) => res.status(200).send('OK'));
+// ROOT -> index.html (exact jouw bestand in de root)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// /contact -> contact.html (alleen als je hierheen navigeert)
+app.get('/contact', (req, res) => {
+  res.sendFile(path.join(__dirname, 'contact.html'));
+});
 
 // Helpers
 const emailRe  = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
@@ -48,7 +54,7 @@ const esc = s => String(s||'')
   .replace(/&/g,'&amp;').replace(/</g,'&lt;')
   .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
-// ---- API ----
+// API: mail
 app.post('/send', async (req, res) => {
   try {
     const { name, email, subject, message } = req.body || {};
@@ -58,13 +64,12 @@ app.post('/send', async (req, res) => {
 
     const fromVerified = process.env.FROM_EMAIL;           // geverifieerd in SendGrid
     const toAddress    = process.env.TO_EMAIL || fromVerified;
-
     if (!fromVerified) return res.status(500).json({ ok:false, error:'Missing FROM_EMAIL' });
 
     const msg = {
       to: toAddress,
-      from: fromVerified,          // MOET geverifieerd zijn
-      replyTo: email,              // gebruiker gaat in replyTo
+      from: fromVerified,
+      replyTo: email,
       subject: `Nieuw bericht: ${subject} — ${name}`,
       text: `Naam: ${name}\nEmail: ${email}\nOnderwerp: ${subject}\n\n${message}`,
       html: `
@@ -85,5 +90,5 @@ app.post('/send', async (req, res) => {
   }
 });
 
-// ---- Start ----
+// Start
 app.listen(PORT, () => console.log(`API on :${PORT}`));
