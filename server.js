@@ -1,44 +1,68 @@
-import express from 'express';
-import cors from 'cors';
-import nodemailer from 'nodemailer';
+const express = require("express");
+require("dotenv").config();
+const path = require('path');
+const cors = require("cors");
+const nodemailer = require("nodemailer");
+const sgMail = require('@sendgrid/mail')
 
-const app = express();
-app.use(cors({ origin: ['https://adani.dev','http://localhost:5173'], methods: ['POST'], allowedHeaders: ['Content-Type'] }));
+const app = express(); // NU werkt het
+const PORT = process.env.PORT || 3000;
+
+
+
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-app.get('/', (req,res)=>res.status(200).send('OK'));
 
+// Nodemailer configuratie
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: false,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,       // Gmail
+    pass: process.env.GMAIL_PASS           // 16-cijferig App Password
+  },
 });
 
-app.post('/send', async (req, res) => {
-  try {
-    const { name, email, message } = req.body || {};
-    if (!name || !email || !message) return res.status(400).json({ ok:false, error:'Missing fields' });
+transporter.verify((error, success) => {
+  if (error) console.log("SMTP fout:", error);
+  else console.log("SMTP server is ready ✅");
+});
 
-    await transporter.sendMail({
-      from: process.env.FROM_EMAIL,
-      to: process.env.TO_EMAIL || process.env.FROM_EMAIL,
-      subject: `Contact: ${name}`,
-      replyTo: email,
-      text: message
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.post("/send", (req, res) => {
+  const { name, email, message } = req.body; // haal data uit POST request
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+  const msg = {
+    to: process.env.GMAIL_USER, // Ontvanger
+    from: `"${name}" <${process.env.GMAIL_USER}>`, // Afzender (moet een geverifieerd adres zijn bij SendGrid)
+    subject: `Nieuw bericht van ${name}`,
+    text: `Naam: ${name}\nEmail: ${email}\n\nBericht:\n${message}`,
+    html: `<strong>Naam:</strong> ${name}<br>
+           <strong>Email:</strong> ${email}<br><br>
+           <strong>Bericht:</strong><br>${message.replace(/\n/g, "<br>")}`,
+  };
+
+  sgMail
+    .send(msg)
+    .then((response) => {
+      console.log("✅ Email verzonden:", response[0].statusCode);
+      res.status(202).json({ success: true, message: "Bericht succesvol verzonden!" });
+    })
+    .catch((error) => {
+      console.error("❌ Fout bij versturen:", error);
+      res.status(500).json({ success: false, message: "Er is iets misgegaan bij het versturen." });
     });
-
-    res.status(202).json({ ok:true });
-  } catch (e) {
-    console.error('SEND ERROR', e);
-    res.status(500).json({ ok:false, error:'Internal error' });
-  }
 });
 
-app.use((err, req, res, next) => {
-  console.error('UNCAUGHT', err);
-  res.status(500).json({ ok:false, error:'Server error' });
-});
 
-const port = process.env.PORT || 10000;
-app.listen(port, () => console.log('API on :' + port));
+// Server maken
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
