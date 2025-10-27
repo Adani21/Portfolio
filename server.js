@@ -23,7 +23,7 @@ if (process.env.SENDGRID_EU === '1') {
 }
 
 // Middleware
-app.use(cors({
+app.use(cors({  
   origin: [
     process.env.ALLOW_ORIGIN || 'http://localhost:5173',
     'http://localhost:5173',
