@@ -1,70 +1,89 @@
-const express = require("express");
-require("dotenv").config();
+// server.js — SendGrid only
+const express = require('express');
+const cors = require('cors');
 const path = require('path');
-const cors = require("cors");
-const nodemailer = require("nodemailer");
-const sgMail = require('@sendgrid/mail')
- 
-const app = express(); // NU werkt het
+const sgMail = require('@sendgrid/mail');
+require('dotenv').config();
+
+const app  = express();
 const PORT = process.env.PORT || 3000;
- 
- 
- 
-// Middleware
-app.use(cors());
-app.use(express.json());
- 
- 
-// Nodemailer configuratie
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,       // Gmail
-    pass: process.env.GMAIL_PASS           // 16-cijferig App Password
-  },
+
+// ---- SendGrid init ----
+if (!process.env.SENDGRID_API_KEY) {
+  console.error('Missing SENDGRID_API_KEY'); process.exit(1);
+}
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+// EU regio (optioneel): SENDGRID_EU=1
+if (process.env.SENDGRID_EU === '1') {
+  const { Client } = require('@sendgrid/client');
+  const client = new Client();
+  client.setApiKey(process.env.SENDGRID_API_KEY);
+  client.setDefaultRequest('host', 'https://api.eu.sendgrid.com');
+  sgMail.client = client;
+}
+
+// ---- Middleware ----
+app.use(cors({
+  origin: [
+    process.env.ALLOW_ORIGIN || 'http://localhost:5173',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
+  methods: ['POST','GET'],
+  allowedHeaders: ['Content-Type']
+}));
+app.use(express.json({ limit: '100kb' }));
+
+// Static client (optioneel)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Health
+app.get('/health', (_, res) => res.status(200).send('OK'));
+
+// Helpers
+const emailRe  = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+const twoWords = v => String(v||'').trim().split(/\s+/).length >= 2;
+const esc = s => String(s||'')
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+// ---- API ----
+app.post('/send', async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body || {};
+    if (!twoWords(name) || !emailRe.test(String(email).trim()) || !subject || !message) {
+      return res.status(400).json({ ok:false, error:'Invalid input' });
+    }
+
+    const fromVerified = process.env.FROM_EMAIL;           // geverifieerd in SendGrid
+    const toAddress    = process.env.TO_EMAIL || fromVerified;
+
+    if (!fromVerified) return res.status(500).json({ ok:false, error:'Missing FROM_EMAIL' });
+
+    const msg = {
+      to: toAddress,
+      from: fromVerified,          // MOET geverifieerd zijn
+      replyTo: email,              // gebruiker gaat in replyTo
+      subject: `Nieuw bericht: ${subject} — ${name}`,
+      text: `Naam: ${name}\nEmail: ${email}\nOnderwerp: ${subject}\n\n${message}`,
+      html: `
+        <p><strong>Naam:</strong> ${esc(name)}</p>
+        <p><strong>Email:</strong> ${esc(email)}</p>
+        <p><strong>Onderwerp:</strong> ${esc(subject)}</p>
+        <p><strong>Bericht:</strong><br>${esc(message).replace(/\n/g,'<br>')}</p>
+      `
+    };
+
+    const sgRes = await sgMail.send(msg);
+    console.log('SendGrid status:', sgRes[0]?.statusCode);
+    return res.status(202).json({ ok:true });
+  } catch (err) {
+    if (err?.response?.body) console.error('SENDGRID ERROR BODY:', err.response.body);
+    console.error('SENDGRID ERROR:', err);
+    return res.status(500).json({ ok:false, error:'Mail send failed' });
+  }
 });
- 
-transporter.verify((error, success) => {
-  if (error) console.log("SMTP fout:", error);
-  else console.log("SMTP server is ready ✅");
-});
- 
-app.use(express.static(__dirname));
- 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
- 
-app.post("/send", (req, res) => {
-  const { name, email, message } = req.body; // haal data uit POST request
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
- 
-  const msg = {
-    to: process.env.GMAIL_USER, // Ontvanger
-    from: `"${name}" <${process.env.GMAIL_USER}>`, // Afzender (moet een geverifieerd adres zijn bij SendGrid)
-    subject: `Nieuw bericht van ${name}`,
-    text: `Naam: ${name}\nEmail: ${email}\n\nBericht:\n${message}`,
-    html: `<strong>Naam:</strong> ${name}<br>
-           <strong>Email:</strong> ${email}<br><br>
-           <strong>Bericht:</strong><br>${message.replace(/\n/g, "<br>")}`,
-  };
- 
-  sgMail
-    .send(msg)
-    .then((response) => {
-      console.log("✅ Email verzonden:", response[0].statusCode);
-      res.status(202).json({ success: true, message: "Bericht succesvol verzonden!" });
-    })
-    .catch((error) => {
-      console.error("❌ Fout bij versturen:", error);
-      res.status(500).json({ success: false, message: "Er is iets misgegaan bij het versturen." });
-    });
-});
- 
- 
-// Server maken
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
- 
- 
+
+// ---- Start ----
+app.listen(PORT, () => console.log(`API on :${PORT}`));
