@@ -100,26 +100,20 @@
             const setErr = (el, on) => el?.closest('.cf-field')?.classList.toggle('is-error', on);
 
             form.addEventListener('submit', async (e) => {
-                e.preventDefault(); // stopt refresh
+                e.preventDefault();
 
-                // validatie
                 let bad = false;
                 if (!hasTwoWords(nameEl.value)) { setErr(nameEl, true); bad = true; } else setErr(nameEl, false);
                 if (!emailRe.test(emailEl.value.trim())) { setErr(emailEl, true); bad = true; } else setErr(emailEl, false);
                 if (!subjectEl.value.trim()) { setErr(subjectEl, true); bad = true; } else setErr(subjectEl, false);
                 if (!messageEl.value.trim()) { setErr(messageEl, true); bad = true; } else setErr(messageEl, false);
+                if (bad) { statusEl && (statusEl.textContent = '❌ Please fill all fields.'); return; }
 
-                if (bad) {
-                    if (statusEl) { statusEl.textContent = '❌ Vul naam (2 woorden), geldig e‑mail, subject en bericht in.'; statusEl.style.color = '#e06b6b'; }
-                    return;
-                }
-
-                // UI state
-                const original = btn ? btn.innerHTML : null;
+                const original = btn?.innerHTML;
                 if (btn) { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.innerHTML = 'Sending…'; }
 
                 try {
-                    const res = await fetch('/send', {
+                    const res = await fetch('https://portfolio-nuul.onrender.com/send', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -129,21 +123,21 @@
                             message: messageEl.value.trim()
                         })
                     });
-
                     if (res.status === 200 || res.status === 202) {
-                        if (statusEl) { statusEl.textContent = '✅ Message sent!'; statusEl.style.color = 'lightgreen'; setTimeout(() => statusEl.textContent = '', 3000); }
+                        statusEl && (statusEl.textContent = '✅ Message sent!');
                         form.reset();
                     } else {
-                        if (statusEl) { statusEl.textContent = '❌ Server error while sending.'; statusEl.style.color = '#e06b6b'; }
+                        statusEl && (statusEl.textContent = '❌ Server error.');
                     }
                 } catch (err) {
                     console.error(err);
-                    if (statusEl) { statusEl.textContent = '⚠️ Cannot connect to server.'; statusEl.style.color = '#e06b6b'; }
+                    statusEl && (statusEl.textContent = '⚠️ Cannot connect to server.');
                 } finally {
                     if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); btn.innerHTML = original; }
                 }
             });
         })();
+
     </script>
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
