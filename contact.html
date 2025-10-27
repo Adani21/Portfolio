@@ -135,7 +135,7 @@
                         email: emailEl.value.trim(),
                         message: `${subjectEl.value.trim()}\n\n${messageEl.value.trim()}`
                     };
-                    const res = await fetch('https://portfolio-nuul.onrender.com/contact.html/send', {
+                    const res = await fetch('https://portfolio-nuul.onrender.com/send', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                     });
                     if (res.status === 200 || res.status === 202) {
