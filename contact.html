@@ -135,8 +135,15 @@
                         email: emailEl.value.trim(),
                         message: `${subjectEl.value.trim()}\n\n${messageEl.value.trim()}`
                     };
-                    const res = await fetch('https://portfolio-nuul.onrender.com/send', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                    js
+                    await fetch('https://your-service.onrender.com/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: document.getElementById('cf-name').value.trim(),
+                            email: document.getElementById('cf-email').value.trim(),
+                            message: `${document.getElementById('cf-subject').value.trim()}\n\n${document.getElementById('cf-message').value.trim()}`
+                        })
                     });
                     if (res.status === 200 || res.status === 202) {
                         showStatus('✅ Message successfully sent!', 'lightgreen');
