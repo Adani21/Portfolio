@@ -83,80 +83,6 @@
             </form>
         </div>
     </section>
-    <!-- Plaats dit NA je cf-form in de pagina of laad met defer -->
-    <script>
-        (function () {
-            const form = document.querySelector('.cf-form');
-            if (!form) return;
-
-            const nameEl = document.getElementById('cf-name');
-            const emailEl = document.getElementById('cf-email');
-            const subjectEl = document.getElementById('cf-subject') || document.getElementById('cf-dropdown');
-            const messageEl = document.getElementById('cf-message');
-            const statusEl = document.getElementById('cf-status') || (() => { const p = document.createElement('p'); p.id = 'cf-status'; p.className = 'cf-status'; form.appendChild(p); return p; })();
-
-            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-            const hasTwoWords = v => v.trim().split(/\s+/).length >= 2;
-
-            function setError(field, on) {
-                const wrap = field?.closest('.cf-field');
-                if (!wrap) return;
-                wrap.classList.toggle('is-error', on);
-                if (on) {
-                    clearTimeout(wrap._cfTimer);
-                    wrap._cfTimer = setTimeout(() => wrap.classList.remove('is-error'), 3000);
-                }
-            }
-            function clearStatus() { statusEl.textContent = ''; }
-            function showStatus(t, c = '#e06b6b') { statusEl.textContent = t; statusEl.style.color = c; }
-
-            [nameEl, emailEl, subjectEl, messageEl].forEach(el => {
-                el?.addEventListener('input', () => setError(el, false));
-            });
-
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault(); clearStatus();
-                let bad = false;
-
-                if (!hasTwoWords(nameEl.value)) { setError(nameEl, true); bad = true; }
-                if (!emailRe.test(emailEl.value.trim())) { setError(emailEl, true); bad = true; }
-                if (!subjectEl || !subjectEl.value.trim()) { setError(subjectEl, true); bad = true; }
-                if (!messageEl.value.trim()) { setError(messageEl, true); bad = true; }
-
-                if (bad) { showStatus('❌ Please enter your name (2 words), a valid email address, a subject, and a message.'); return; }
-
-                const btn = form.querySelector('.cf-cta');
-                const original = btn.innerHTML;
-                btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.innerHTML = 'Sending…';
-
-                try {
-                    const payload = {
-                        name: nameEl.value.trim(),
-                        email: emailEl.value.trim(),
-                        message: `${subjectEl.value.trim()}\n\n${messageEl.value.trim()}`
-                    };
-                    js
-                    await fetch('https://your-service.onrender.com/send', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            name: document.getElementById('cf-name').value.trim(),
-                            email: document.getElementById('cf-email').value.trim(),
-                            message: `${document.getElementById('cf-subject').value.trim()}\n\n${document.getElementById('cf-message').value.trim()}`
-                        })
-                    });
-                    if (res.status === 200 || res.status === 202) {
-                        showStatus('✅ Message successfully sent!', 'lightgreen');
-                        form.reset(); setTimeout(clearStatus, 3000);
-                    } else { showStatus('❌ Something went wrong.'); }
-                } catch (err) {
-                    console.error(err); showStatus('⚠️ Can’t connect to server.');
-                } finally {
-                    btn.disabled = false; btn.removeAttribute('aria-busy'); btn.innerHTML = original;
-                }
-            });
-        })();
-    </script>
 
 
 
@@ -164,7 +90,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <script src="script.js"></script>
+    <script defer src="script.js"></script>
 </body>
 
 </html>
