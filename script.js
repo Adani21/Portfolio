@@ -1,3 +1,132 @@
+// Matter.js setup with walls, mouse attraction and click explosion
+const { Engine, Render, Runner, Bodies, Composite, Events, Body } = Matter;
+
+function createFloatingShapes() {
+    const engine = Engine.create();
+    engine.gravity.y = 0;
+
+    const shapes = document.querySelectorAll('.shape');
+    const bodies = [];
+
+    // Create invisible walls at screen edges
+    const wallThickness = 50;
+    const walls = [
+        // Top wall
+        Bodies.rectangle(window.innerWidth / 2, -wallThickness / 2, window.innerWidth, wallThickness, { isStatic: true }),
+        // Bottom wall
+        Bodies.rectangle(window.innerWidth / 2, window.innerHeight + wallThickness / 2, window.innerWidth, wallThickness, { isStatic: true }),
+        // Left wall
+        Bodies.rectangle(-wallThickness / 2, window.innerHeight / 2, wallThickness, window.innerHeight, { isStatic: true }),
+        // Right wall
+        Bodies.rectangle(window.innerWidth + wallThickness / 2, window.innerHeight / 2, wallThickness, window.innerHeight, { isStatic: true })
+    ];
+
+    // Add walls to world
+    Composite.add(engine.world, walls);
+
+    shapes.forEach((shape, index) => {
+        const startX = gsap.utils.random(100, window.innerWidth - 100);
+        const startY = gsap.utils.random(100, window.innerHeight - 100);
+
+        let body;
+        if (shape.classList.contains('shape-circle')) {
+            body = Bodies.circle(startX, startY, 40, {
+                restitution: 0.8,
+                friction: 0.001,
+                frictionAir: 0.01
+            });
+        } else if (shape.classList.contains('shape-square')) {
+            body = Bodies.rectangle(startX, startY, 70, 70, {
+                restitution: 0.8,
+                friction: 0.001,
+                frictionAir: 0.01
+            });
+        } else if (shape.classList.contains('shape-triangle')) {
+            const vertices = [
+                { x: 0, y: -35 },
+                { x: -35, y: 35 },
+                { x: 35, y: 35 }
+            ];
+            body = Bodies.fromVertices(startX, startY, vertices, {
+                restitution: 0.8,
+                friction: 0.001,
+                frictionAir: 0.01
+            });
+        }
+
+        Body.setVelocity(body, {
+            x: gsap.utils.random(-1, 1),
+            y: gsap.utils.random(-1, 1)
+        });
+
+        bodies.push({ element: shape, body: body });
+        Composite.add(engine.world, body);
+    });
+
+    // Mouse position tracking
+    let mousePos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+    document.addEventListener('mousemove', (e) => {
+        mousePos.x = e.clientX;
+        mousePos.y = e.clientY;
+    });
+
+    // Click explosion effect - BIGGER VERSION
+    document.addEventListener('click', (e) => {
+        const explosionX = e.clientX;
+        const explosionY = e.clientY;
+        const explosionForce = 0.5;  // Increased from 0.08 (more power!)
+        const explosionRadius = 1200; // Increased from 600 (wider range!)
+
+        bodies.forEach(({ body }) => {
+            const dx = body.position.x - explosionX;
+            const dy = body.position.y - explosionY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < explosionRadius) {
+                const forceMagnitude = explosionForce * (1 - distance / explosionRadius);
+                const angle = Math.atan2(dy, dx);
+                const force = {
+                    x: Math.cos(angle) * forceMagnitude,
+                    y: Math.sin(angle) * forceMagnitude
+                };
+
+                Body.applyForce(body, body.position, force);
+            }
+        });
+    });
+
+
+    // Apply attraction force towards mouse
+    Events.on(engine, 'beforeUpdate', () => {
+        bodies.forEach(({ body }) => {
+            const dx = mousePos.x - body.position.x;
+            const dy = mousePos.y - body.position.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            const attractionStrength = 0.0005;
+            const maxDistance = 400;
+
+            if (distance < maxDistance && distance > 10) {
+                const force = {
+                    x: (dx / distance) * attractionStrength * body.mass,
+                    y: (dy / distance) * attractionStrength * body.mass
+                };
+                Body.applyForce(body, body.position, force);
+            }
+        });
+    });
+
+    // Update visual positions
+    Events.on(engine, 'afterUpdate', () => {
+        bodies.forEach(({ element, body }) => {
+            element.style.transform = `translate(${body.position.x}px, ${body.position.y}px) rotate(${body.angle}rad)`;
+        });
+    });
+
+    Runner.run(Runner.create(), engine);
+}
+
 // Navbar scroll effect
 const navbar = document.querySelector('.navbar');
 if (navbar) {
