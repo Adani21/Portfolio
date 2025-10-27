@@ -192,4 +192,17 @@
   30%, 50%, 70% { transform: translateX(-4px); }
   40%, 60% { transform: translateX(4px); }
 }
-.cf-field.is-error { animation: cfShake .35s ease; }
+.cf-field.is-error { animation: cfShake .35s ease; }   
+
+.homeContact {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 40px;
+    height: 70px;
+    width: 70px;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0 0 6px rgba(0,0,0,0.3);
+    cursor: pointer;
+}
