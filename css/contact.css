@@ -1,4 +1,5 @@
 :root{
+  /* Globale variabelen voor kleuren, radius, shadows en grid */
   --cf-ink: #e8eaee;
   --cf-muted: #b6bcc9;
   --cf-ring: #6ac2ff;
@@ -9,7 +10,8 @@
   --cf-grid: rgba(255,255,255,0.06);
 }
 
-/* section bg + grid */
+
+/* Sectie-achtergrond met subtiel grid-overlay */
 .cf-section{
   position: relative;
   padding: clamp(64px, 8vw, 120px) 20px;
@@ -24,7 +26,8 @@
   mix-blend-mode: overlay;
 }
 
-/* solid card */
+
+/* Hoofdkaart: donkere solid card met afgeronde hoeken en schaduw */
 .cf-card{
   position: relative;
   max-width: 960px;
@@ -38,7 +41,8 @@
   z-index: 1;
 }
 
-/* vignette sweep */
+
+/* Vignet/sweep effect bovenop de kaart (visuele diepte) */
 .cf-card::after{
   content:"";
   position:absolute; inset:-20%;
@@ -52,25 +56,30 @@
   filter: blur(10px);
 }
 
-/* orbs */
+
+/* Decoratieve orbs binnen de kaart (achter contentlaag) */
 .cf-orbs{ position:absolute; inset:0; overflow:hidden; z-index:0; pointer-events:none; }
 .cf-orb{ position:absolute; border-radius:50%; filter:blur(60px); opacity:.4; }
 .cf-orb-1{ width:200px;height:200px;background:linear-gradient(135deg,#4facfe,#00f2fe); top:-50px; right:-50px; animation:cfFloat1 20s ease-in-out infinite; }
 .cf-orb-2{ width:150px;height:150px;background:linear-gradient(135deg,#667eea,#764ba2); bottom:-30px; left:-30px; animation:cfFloat2 25s ease-in-out infinite; }
 .cf-orb-3{ width:180px;height:180px;background:linear-gradient(135deg,#a8edea,#fed6e3); top:50%; left:50%; transform:translate(-50%,-50%); animation:cfFloat3 30s ease-in-out infinite; }
 
+
+/* Langzame, soepele orb-animaties */
 @keyframes cfFloat1{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-20px,20px) scale(1.1);} }
 @keyframes cfFloat2{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(20px,-15px) scale(1.15);} }
 @keyframes cfFloat3{ 0%,100%{transform:translate(-50%,-50%) scale(1);} 33%{transform:translate(-45%,-55%) scale(1.1);} 66%{transform:translate(-55%,-45%) scale(0.9);} }
 
-/* title */
+
+/* Kaarttitel */
 .cf-title{
   margin: 0 0 18px;
   font-size: clamp(28px, 3.2vw, 40px);
   color: #f4f6fb;
 }
 
-/* form grid */
+
+/* Formulier in 2-koloms grid; knoppen/brede velden over volledige breedte */
 .cf-form{
   position: relative; z-index: 1;
   display: grid;
@@ -80,7 +89,8 @@
 .cf-textarea{ grid-column: 1 / -1; }
 .cf-cta{ grid-column: 1 / -1; justify-self: start; }
 
-/* fields */
+
+/* Basestyles voor inputs/textarea */
 .cf-field{ position: relative; }
 .cf-field input,
 .cf-field textarea{
@@ -99,7 +109,8 @@
 .cf-field input::placeholder,
 .cf-field textarea::placeholder{ color: #8a95a5; }
 
-/* floating labels */
+
+/* Floating labels: schuiven/krimpen bij focus of ingevulde waarde */
 .cf-field label{
   position: absolute;
   top: 12px; left: 14px;
@@ -126,7 +137,8 @@
   padding-inline: 6px;
 }
 
-/* CTA */
+
+/* Verstuurknop (CTA) met lichte 3D/shine */
 .cf-cta{
   display: inline-flex; align-items: center; gap: 10px;
   padding: 12px 18px;
@@ -150,15 +162,16 @@
 .cf-cta:active{ transform: translateY(0); }
 
 
-/* status netjes onder het formulier, niet boven inputs */
+/* Statusmelding onder het formulier (geen absolute positioning) */
 .cf-status{
   margin-top: 10px;
   color: #e06b6b;
   font: 600 14px/1.3 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-  position: static;            /* niet absolute */
+  position: static;             /* netjes in document flow */
 }
 
-/* fouttoestand voor velden */
+
+/* Errorstates: rood randje en subtiele focusglow */
 .cf-field.is-error input,
 .cf-field.is-error textarea{
   border-color: #e06b6b;
@@ -173,19 +186,22 @@
   pointer-events: none;
 }
 
-/* labels blijven werken bij errors */
+
+/* Labelkleur bij error consistent houden met state */
 .cf-field.is-error label{
   color: #f0b1b1;
 }
 
-/* fouttoestand voor velden (uitbreiding) */
+
+/* Extra defensieve regels (forceren bij hogere specificiteit) */
 .cf-field.is-error input,
 .cf-field.is-error textarea{
   border-color: #e06b6b !important;
   box-shadow: 0 0 0 6px rgba(224,107,107,.18) !important;
 }
 
-/* optioneel: subtiele shake bij error */
+
+/* Subtiele shake-animatie bij fout */
 @keyframes cfShake {
   10%, 90% { transform: translateX(-1px); }
   20%, 80% { transform: translateX(2px); }
@@ -194,15 +210,17 @@
 }
 .cf-field.is-error { animation: cfShake .35s ease; }   
 
+
+/* Home-knop (cirkel) linksboven op de contactpagina */
 .homeContact {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 40px;
-    height: 70px;
-    width: 70px;
-    border-radius: 50%;
-    background-color: white;
-    box-shadow: 0 0 6px rgba(0,0,0,0.3);
-    cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 40px;
+  height: 70px;
+  width: 70px;
+  border-radius: 50%;
+  background-color: white;
+  box-shadow: 0 0 6px rgba(0,0,0,0.3);
+  cursor: pointer;
 }
