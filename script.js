@@ -1,3 +1,4 @@
+window.addEventListener('DOMContentLoaded', () => {
 // Matter.js setup with walls, mouse attraction and click explosion
 const { Engine, Render, Runner, Bodies, Composite, Events, Body } = Matter;
 
@@ -126,6 +127,8 @@ function createFloatingShapes() {
 
     Runner.run(Runner.create(), engine);
 }
+
+});
 
 // Navbar scroll effect
 const navbar = document.querySelector('.navbar');
