@@ -1,0 +1,195 @@
+:root{
+  --cf-ink: #e8eaee;
+  --cf-muted: #b6bcc9;
+  --cf-ring: #6ac2ff;
+  --cf-radius-xl: 24px;
+  --cf-radius-pill: 999px;
+  --cf-shadow-1: 0 20px 60px rgba(0,0,0,0.45);
+  --cf-shadow-2: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.5);
+  --cf-grid: rgba(255,255,255,0.06);
+}
+
+/* section bg + grid */
+.cf-section{
+  position: relative;
+  padding: clamp(64px, 8vw, 120px) 20px;
+}
+.cf-section::before{
+  content:"";
+  position:absolute; inset:0;
+  background:
+    linear-gradient(var(--cf-grid) 1px, transparent 1px) 0 0/48px 48px,
+    linear-gradient(90deg, var(--cf-grid) 1px, transparent 1px) 0 0/48px 48px;
+  pointer-events:none;
+  mix-blend-mode: overlay;
+}
+
+/* solid card */
+.cf-card{
+  position: relative;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: clamp(28px,4vw,44px);
+  border-radius: var(--cf-radius-xl);
+  background: #111822;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: var(--cf-shadow-1);
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* vignette sweep */
+.cf-card::after{
+  content:"";
+  position:absolute; inset:-20%;
+  background:
+    radial-gradient(1200px 600px at 70% 12%, rgba(74,211,255,.22), transparent 60%),
+    radial-gradient(750px 420px at 18% 82%, rgba(255,255,255,.10), transparent 60%),
+    radial-gradient(900px 900px at 0% 50%, rgba(0,0,0,.45), transparent 65%);
+  mix-blend-mode: overlay;
+  pointer-events:none;
+  z-index: 0;
+  filter: blur(10px);
+}
+
+/* orbs */
+.cf-orbs{ position:absolute; inset:0; overflow:hidden; z-index:0; pointer-events:none; }
+.cf-orb{ position:absolute; border-radius:50%; filter:blur(60px); opacity:.4; }
+.cf-orb-1{ width:200px;height:200px;background:linear-gradient(135deg,#4facfe,#00f2fe); top:-50px; right:-50px; animation:cfFloat1 20s ease-in-out infinite; }
+.cf-orb-2{ width:150px;height:150px;background:linear-gradient(135deg,#667eea,#764ba2); bottom:-30px; left:-30px; animation:cfFloat2 25s ease-in-out infinite; }
+.cf-orb-3{ width:180px;height:180px;background:linear-gradient(135deg,#a8edea,#fed6e3); top:50%; left:50%; transform:translate(-50%,-50%); animation:cfFloat3 30s ease-in-out infinite; }
+
+@keyframes cfFloat1{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-20px,20px) scale(1.1);} }
+@keyframes cfFloat2{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(20px,-15px) scale(1.15);} }
+@keyframes cfFloat3{ 0%,100%{transform:translate(-50%,-50%) scale(1);} 33%{transform:translate(-45%,-55%) scale(1.1);} 66%{transform:translate(-55%,-45%) scale(0.9);} }
+
+/* title */
+.cf-title{
+  margin: 0 0 18px;
+  font-size: clamp(28px, 3.2vw, 40px);
+  color: #f4f6fb;
+}
+
+/* form grid */
+.cf-form{
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px clamp(16px, 2vw, 24px);
+}
+.cf-textarea{ grid-column: 1 / -1; }
+.cf-cta{ grid-column: 1 / -1; justify-self: start; }
+
+/* fields */
+.cf-field{ position: relative; }
+.cf-field input,
+.cf-field textarea{
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  background: #0c1118;
+  box-shadow: var(--cf-shadow-2);
+  padding: 16px 14px;
+  font: 500 16px/1.3 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  color: var(--cf-ink);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s, background .2s, color .2s;
+}
+.cf-field textarea{ resize: vertical; min-height: 140px; }
+.cf-field input::placeholder,
+.cf-field textarea::placeholder{ color: #8a95a5; }
+
+/* floating labels */
+.cf-field label{
+  position: absolute;
+  top: 12px; left: 14px;
+  color: #9aa3b2;
+  background: transparent;
+  padding: 0 6px;
+  pointer-events: none;
+  transform-origin: left top;
+  transition: transform .18s ease, color .18s ease, background .18s ease;
+}
+.cf-field input:focus,
+.cf-field textarea:focus{
+  border-color: var(--cf-ring);
+  box-shadow: 0 0 0 6px rgba(106,194,255,.17);
+  background: #0e1520;
+}
+.cf-field input:focus + label,
+.cf-field input:not(:placeholder-shown) + label,
+.cf-field textarea:focus + label,
+.cf-field textarea:not(:placeholder-shown) + label{
+  transform: translateY(-18px) scale(.86);
+  color: #c9d3e1;
+  background: linear-gradient(180deg, rgba(17,24,34,.9), rgba(17,24,34,0));
+  padding-inline: 6px;
+}
+
+/* CTA */
+.cf-cta{
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 18px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--cf-radius-pill);
+  color: #0f1115;
+  background: linear-gradient(180deg, #ffffff, #e9edf3);
+  box-shadow:
+    0 12px 26px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.85);
+  cursor: pointer;
+  transition: transform .08s ease, box-shadow .18s ease, background .18s ease;
+}
+.cf-cta:hover{
+  transform: translateY(-1px);
+  box-shadow:
+    0 18px 36px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.9);
+  background: linear-gradient(180deg, #ffffff, #e4e9f0);
+}
+.cf-cta:active{ transform: translateY(0); }
+
+
+/* status netjes onder het formulier, niet boven inputs */
+.cf-status{
+  margin-top: 10px;
+  color: #e06b6b;
+  font: 600 14px/1.3 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  position: static;            /* niet absolute */
+}
+
+/* fouttoestand voor velden */
+.cf-field.is-error input,
+.cf-field.is-error textarea{
+  border-color: #e06b6b;
+  box-shadow: 0 0 0 6px rgba(224,107,107,.18);
+}
+.cf-field .cf-error{
+  position: absolute;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: #e06b6b;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* labels blijven werken bij errors */
+.cf-field.is-error label{
+  color: #f0b1b1;
+}
+
+/* fouttoestand voor velden (uitbreiding) */
+.cf-field.is-error input,
+.cf-field.is-error textarea{
+  border-color: #e06b6b !important;
+  box-shadow: 0 0 0 6px rgba(224,107,107,.18) !important;
+}
+
+/* optioneel: subtiele shake bij error */
+@keyframes cfShake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+.cf-field.is-error { animation: cfShake .35s ease; }

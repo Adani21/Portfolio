@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/contact.css">
+</head>
+
+<body>
+    <div class="loadingScreen">
+        <h1 class="loadText">adani<span class="loadExtra">.dev</span></h1>
+        <div class="loadDots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        <p class="loadExp">Loading experience...</p>
+    </div>
+    <div class="gradient-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+        <div class="gradient-orb orb-4"></div>
+        <div class="gradient-orb orb-5"></div>
+        <div class="gradient-orb orb-6"></div>
+    </div>
+
+    <div class="floating-shapes">
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-square"></div>
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-square"></div>
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-square"></div>
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-square"></div>
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-square"></div>
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-square"></div>
+    </div>
+    <section class="contact-section1 cf-section" id="contact">
+        <div class="contact-card1 cf-card">
+            <div class="cf-orbs">
+                <span class="cf-orb cf-orb-1"></span>
+                <span class="cf-orb cf-orb-2"></span>
+                <span class="cf-orb cf-orb-3"></span>
+            </div>
+
+            <h2 class="cf-title">Let’s work together</h2>
+
+            <form class="cf-form" novalidate>
+                <div class="cf-field">
+                    <input id="cf-name" name="name" type="text" placeholder="" required />
+                    <label for="cf-name">Your name</label>
+                </div>
+
+                <div class="cf-field">
+                    <input id="cf-email" name="email" type="email" placeholder="" required />
+                    <label for="cf-email">Email address</label>
+                </div>
+
+                <div class="cf-field">
+                    <input id="cf-subject" name="subject" type="text" placeholder="" />
+                    <label for="cf-subject">Subject</label>
+                </div>
+
+                <div class="cf-field cf-textarea">
+                    <textarea id="cf-message" name="message" rows="5" required></textarea>
+                    <label for="cf-message">Your message</label>
+                </div>
+
+                <button class="cf-cta" type="submit">
+                    <span>Send message</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M4 12h13.17l-4.58-4.59L14 6l8 8-8 8-1.41-1.41L17.17 14H4z" />
+                    </svg>
+                </button>
+                <p id="cf-status" class="cf-status" role="status" aria-live="polite"></p>
+            </form>
+        </div>
+    </section>
+    <!-- Plaats dit NA je cf-form in de pagina of laad met defer -->
+    <script>
+        (function () {
+            const form = document.querySelector('.cf-form');
+            if (!form) return;
+
+            const nameEl = document.getElementById('cf-name');
+            const emailEl = document.getElementById('cf-email');
+            const subjectEl = document.getElementById('cf-subject') || document.getElementById('cf-dropdown');
+            const messageEl = document.getElementById('cf-message');
+            const statusEl = document.getElementById('cf-status') || (() => { const p = document.createElement('p'); p.id = 'cf-status'; p.className = 'cf-status'; form.appendChild(p); return p; })();
+
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+            const hasTwoWords = v => v.trim().split(/\s+/).length >= 2;
+
+            function setError(field, on) {
+                const wrap = field?.closest('.cf-field');
+                if (!wrap) return;
+                wrap.classList.toggle('is-error', on);
+                if (on) {
+                    clearTimeout(wrap._cfTimer);
+                    wrap._cfTimer = setTimeout(() => wrap.classList.remove('is-error'), 3000);
+                }
+            }
+            function clearStatus() { statusEl.textContent = ''; }
+            function showStatus(t, c = '#e06b6b') { statusEl.textContent = t; statusEl.style.color = c; }
+
+            [nameEl, emailEl, subjectEl, messageEl].forEach(el => {
+                el?.addEventListener('input', () => setError(el, false));
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault(); clearStatus();
+                let bad = false;
+
+                if (!hasTwoWords(nameEl.value)) { setError(nameEl, true); bad = true; }
+                if (!emailRe.test(emailEl.value.trim())) { setError(emailEl, true); bad = true; }
+                if (!subjectEl || !subjectEl.value.trim()) { setError(subjectEl, true); bad = true; }
+                if (!messageEl.value.trim()) { setError(messageEl, true); bad = true; }
+
+                if (bad) { showStatus('❌ Please enter your name (2 words), a valid email address, a subject, and a message.'); return; }
+
+                const btn = form.querySelector('.cf-cta');
+                const original = btn.innerHTML;
+                btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.innerHTML = 'Sending…';
+
+                try {
+                    const payload = {
+                        name: nameEl.value.trim(),
+                        email: emailEl.value.trim(),
+                        message: `${subjectEl.value.trim()}\n\n${messageEl.value.trim()}`
+                    };
+                    const res = await fetch('https://portfolio-nuul.onrender.com/send', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                    });
+                    if (res.status === 200 || res.status === 202) {
+                        showStatus('✅ Message successfully sent!', 'lightgreen');
+                        form.reset(); setTimeout(clearStatus, 3000);
+                    } else { showStatus('❌ Something went wrong.'); }
+                } catch (err) {
+                    console.error(err); showStatus('⚠️ Can’t connect to server.');
+                } finally {
+                    btn.disabled = false; btn.removeAttribute('aria-busy'); btn.innerHTML = original;
+                }
+            });
+        })();
+    </script>
+
+
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
